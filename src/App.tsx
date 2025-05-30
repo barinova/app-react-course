@@ -1,6 +1,6 @@
 import './App.css';
 import ListGroup from './components/ListGroup.tsx';
-import { Button } from './components/Button.tsx';
+import { Button } from './components/Button/Button.tsx';
 import Alert from './components/Alert.tsx';
 import { useState } from 'react';
 
