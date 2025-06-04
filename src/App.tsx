@@ -1,64 +1,79 @@
 import './App.css';
-import ListGroup from './components/ListGroup.tsx';
-import { Button } from './components/Button/Button.tsx';
-import Alert from './components/Alert.tsx';
 import { useState } from 'react';
-import { produce } from 'immer';
+import { Button } from './components/Button/Button.tsx';
 
 function App() {
-  const items = ['New York', 'San Francisco', 'Tokyo', 'London', 'Paris'];
-  const handleSelectItem = (item: number) => {
-    console.log(item);
+  const [game, setGame] = useState({
+    id: 1,
+    player: {
+      name: 'John',
+    },
+  });
+
+  const [pizza, setPizza] = useState({
+    name: 'Margherita',
+    toppings: ['cheese', 'tomato'],
+  });
+
+  const [cart, setCart] = useState({
+    discount: 0.1,
+    items: [
+      {
+        id: 1,
+        title: 'Pizza Margherita',
+        price: 10,
+        quantity: 1,
+      },
+      {
+        id: 2,
+        title: 'Pizza Pepperoni',
+        price: 12,
+        quantity: 12,
+      },
+    ],
+  });
+
+  const changeQuantity = () => {
+    setCart({
+      ...cart,
+      items: cart.items.map(item => ({
+        ...item,
+        quantity: item.quantity + 1,
+      })),
+    });
   };
 
-  const [alertVisible, setAlertVisibility] = useState(false);
-  const [bugs, setBugs] = useState([
-    {
-      name: 'bug',
-      id: 3,
-      fixed: false,
-    },
-    {
-      name: 'bug1',
-      id: 18,
-      fixed: false,
-    },
-  ]);
+  const addTopping = () => {
+    setPizza({ ...pizza, toppings: [...pizza.toppings, 'basil'] });
+  };
 
   const handleClick = () => {
-    // setBugs(bugs.map(bug => (bug.id === 3 ? { ...bug, fixed: true } : bug)));
-    setBugs(
-      produce(draft => {
-        const bug = draft.find(bug => bug.id === 3);
-        if (bug) {
-          bug.fixed = true;
-        }
-      }),
-    );
+    setGame({
+      ...game,
+      player: {
+        name: 'Jane',
+      },
+    });
   };
 
   return (
     <div>
-      {alertVisible && (
-        <Alert onClick={() => setAlertVisibility(false)}>My Alert</Alert>
-      )}
-      <ListGroup
-        items={items}
-        heading="Cities"
-        onSelectItem={handleSelectItem}
-      ></ListGroup>
-      <div className="mt-4">
-        <Button onClick={() => setAlertVisibility(true)}>Primary Button</Button>
-      </div>
+      <section>
+        <p>{game.player.name}</p>
+        <Button onClick={handleClick}>Change name</Button>
+      </section>
 
-      <div className="mt-4">
-        {bugs.map(bug => (
-          <p>
-            {bug.id} {bug.fixed ? 'fixed' : 'not fixed'}
-          </p>
+      <section>
+        <p>{pizza.toppings.join(', ')}</p>
+        <Button onClick={addTopping}>Add topping</Button>
+      </section>
+
+      <section>
+        {cart.items.map(item => (
+          <p>{item.quantity}</p>
         ))}
-        <Button onClick={() => handleClick()}>Click</Button>
-      </div>
+        <Button onClick={changeQuantity}>Change quantity</Button>
+      </section>
     </div>
   );
 }
