@@ -1,53 +1,84 @@
-import { type FieldValues, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import type { Product } from '../App.tsx';
+import { CategoryEnum } from './Category.enum.tsx';
 
-const schema = z.object({
-  name: z.string().min(3, { message: 'Name must be at least 3 characters' }),
-  age: z.number({ invalid_type_error: 'Age field is required' }).min(18),
-});
+type Props = {
+  onProductSubmit: (data: Product) => void;
+};
 
-export const Form = () => {
+export const Form = ({ onProductSubmit }: Props) => {
+  type FormData = z.infer<typeof schema>;
+  const schema = z.object({
+    name: z.string().min(3, { message: 'Name must be at least 3 characters.' }),
+    amount: z.number().min({ message: '0.01' }).max({ message: '9999.99' }),
+    category: z.string().nonempty({ message: 'Category is required.' }),
+  });
+
   const {
     register,
+    reset,
     handleSubmit,
-    formState: { errors, isValid },
-  } = useForm<FormData>({ resolver: zodResolver(schema) });
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  });
 
-  type FormData = z.infer<typeof schema>;
-
-  const onSubmit = (data: FieldValues) => {
-    console.log(data);
+  const onSubmit = (event: FormData) => {
+    onProductSubmit({
+      name: event.name,
+      amount: parseFloat(event.amount),
+      category: event.category,
+    });
+    reset();
   };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="mb-3">
-        <label htmlFor="name" className="form-label">
-          Name
-        </label>
+    <form
+      className="w-50 mx-auto pb-5 float-start"
+      onSubmit={handleSubmit(onSubmit)}
+    >
+      <div className="pb-2">
+        <label className="form-label float-start">Name</label>
         <input
-          {...register('name')}
+          className="form-control"
           id="name"
           type="text"
-          className="form-control"
+          {...register('name')}
         />
         {errors.name && <p className="text-danger">{errors.name.message}</p>}
       </div>
-      <div className="mb-3">
-        <label htmlFor="age" className="form-label">
-          Age
-        </label>
+      <div className="pb-2">
+        <label className="form-label float-start">Amount</label>
         <input
-          {...register('age', {
-            valueAsNumber: true,
-          })}
-          type="number"
           className="form-control"
-          id="age"
+          id="amount"
+          type="number"
+          {...register('amount', { valueAsNumber: true })}
         />
-        {errors.age && <p className="text-danger">{errors.age.message}</p>}
+        {errors.amount && (
+          <p className="text-danger">{errors.amount.message}</p>
+        )}
       </div>
-      <button className="btm-primary" type="submit" disabled={!isValid}>
+      <div className="pb-2">
+        <label className="form-label float-start">Category</label>
+        <select
+          className="form-control"
+          id="category"
+          {...register('category')}
+        >
+          {Object.keys(CategoryEnum).map(category => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+        {errors.category && (
+          <p className="text-danger">{errors.category.message}</p>
+        )}
+      </div>
+      <button className="btn btn-primary mt-3" type="submit">
         Submit
       </button>
     </form>
