@@ -1,25 +1,20 @@
-import { useState } from 'react';
+import { type FieldValues, useForm } from 'react-hook-form';
 
 export const Form = () => {
-  const [person, setPerson] = useState({
-    name: '',
-    age: '',
-  });
+  const { register, handleSubmit } = useForm();
+  console.log(register('name'));
 
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    console.log(`Name: ${person.name}, Age: ${person.age}`);
+  const onSubmit = (data: FieldValues) => {
+    console.log(data);
   };
-
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <div className="mb-3">
         <label htmlFor="name" className="form-label">
           Name
         </label>
         <input
-          onChange={event => setPerson({ ...person, name: event.target.value })}
-          value={person.name}
+          {...register('name')}
           id="name"
           type="text"
           className="form-control"
@@ -30,13 +25,7 @@ export const Form = () => {
           Age
         </label>
         <input
-          onChange={event =>
-            setPerson({
-              ...person,
-              age: event.target.value ? parseInt(event.target.value) : 0,
-            })
-          }
-          value={person.age}
+          {...register('age')}
           type="number"
           className="form-control"
           id="age"
