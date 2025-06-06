@@ -12,6 +12,18 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const deleteUser = (user: User) => {
+    const originalUsers = [...users];
+    setUsers(users.filter(u => u.id !== user.id));
+
+    axios
+      .delete('https://jsonplaceholder.typicode.com/users/' + user.id)
+      .catch(error => {
+        setError(error);
+        setUsers(originalUsers);
+      });
+  };
+
   useEffect(() => {
     setIsLoading(true);
     const abortController = new AbortController();
@@ -29,7 +41,6 @@ function App() {
         setError(er);
       })
       .finally(() => {
-        console.log('Request completed');
         setIsLoading(false);
       });
 
@@ -39,17 +50,25 @@ function App() {
   return (
     <>
       {isLoading && <div className="spinner-border"></div>}
-      {error ? (
-        <span className="error">Error occurred</span>
-      ) : (
-        <ul>
-          {users.map(user => (
-            <li key={user.id}>
+      {error && <span className="error">Error occurred</span>}
+      <ul className="list-group">
+        {users.map(user => (
+          <li
+            className="list-group-item d-flex justify-content-between"
+            key={user.id}
+          >
+            <span className="m-sm-1">
               {user.name} (ID: {user.id})
-            </li>
-          ))}
-        </ul>
-      )}
+            </span>
+            <button
+              className="btn btn-outline-danger"
+              onClick={() => deleteUser(user)}
+            >
+              Delete
+            </button>
+          </li>
+        ))}
+      </ul>
     </>
   );
 }
