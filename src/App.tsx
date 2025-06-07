@@ -1,11 +1,7 @@
 import './App.css';
 import { useEffect, useState } from 'react';
-import axios, { CanceledError } from 'axios';
-
-interface User {
-  id: number;
-  name: string;
-}
+import apiClient, { CanceledError } from './services/api-client.ts';
+import userService, { type User } from './services/user-service.tsx';
 
 function App() {
   const [users, setUsers] = useState<User[]>([]);
@@ -16,12 +12,10 @@ function App() {
     const originalUsers = [...users];
     setUsers(users.filter(u => u.id !== user.id));
 
-    axios
-      .delete('https://jsonplaceholder.typicode.com/users/' + user.id)
-      .catch(error => {
-        setError(error);
-        setUsers(originalUsers);
-      });
+    userService.deleteUser(user.id).catch(error => {
+      setError(error);
+      setUsers(originalUsers);
+    });
   };
 
   const addUser = () => {
@@ -33,8 +27,8 @@ function App() {
 
     setUsers([newUser, ...users]);
 
-    axios
-      .post('https://jsonplaceholder.typicode.com/users', newUser)
+    userService
+      .addUser(newUser)
       .then(({ data: savedUser }) => setUsers([savedUser, ...users]))
       .catch(err => {
         setError(err.message);
@@ -48,24 +42,16 @@ function App() {
 
     setUsers(users.map(u => (u.id === user.id ? updatedUser : u)));
 
-    axios
-      .patch(
-        'https://jsonplaceholder.typicode.com/users/' + user.id,
-        updatedUser,
-      )
-      .catch(err => {
-        setError(err.message);
-        setUsers(originalUsers);
-      });
+    userService.updateUser(updatedUser).catch(err => {
+      setError(err.message);
+      setUsers(originalUsers);
+    });
   };
 
   useEffect(() => {
     setIsLoading(true);
-    const abortController = new AbortController();
-    axios
-      .get<User[]>('https://jsonplaceholder.typicode.com/users', {
-        signal: abortController.signal,
-      })
+    const { req, cancel } = userService.getAllUsers();
+    req
       .then(response => {
         setUsers(response.data);
       })
@@ -78,8 +64,7 @@ function App() {
       .finally(() => {
         setIsLoading(false);
       });
-
-    return () => abortController.abort();
+    return cancel();
   }, []);
 
   return (
