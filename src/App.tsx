@@ -1,7 +1,7 @@
 import './App.css';
 import { useEffect, useState } from 'react';
-import apiClient, { CanceledError } from './services/api-client.ts';
-import userService, { type User } from './services/user-service.tsx';
+import { CanceledError } from './services/api-client.ts';
+import userService, { type User } from './services/user-service.ts';
 
 function App() {
   const [users, setUsers] = useState<User[]>([]);
@@ -12,7 +12,7 @@ function App() {
     const originalUsers = [...users];
     setUsers(users.filter(u => u.id !== user.id));
 
-    userService.deleteUser(user.id).catch(error => {
+    userService.delete(user).catch(error => {
       setError(error);
       setUsers(originalUsers);
     });
@@ -28,7 +28,7 @@ function App() {
     setUsers([newUser, ...users]);
 
     userService
-      .addUser(newUser)
+      .add(newUser)
       .then(({ data: savedUser }) => setUsers([savedUser, ...users]))
       .catch(err => {
         setError(err.message);
@@ -42,7 +42,7 @@ function App() {
 
     setUsers(users.map(u => (u.id === user.id ? updatedUser : u)));
 
-    userService.updateUser(updatedUser).catch(err => {
+    userService.update(updatedUser).catch(err => {
       setError(err.message);
       setUsers(originalUsers);
     });
@@ -50,7 +50,7 @@ function App() {
 
   useEffect(() => {
     setIsLoading(true);
-    const { req, cancel } = userService.getAllUsers();
+    const { req, cancel } = userService.getAll<User>();
     req
       .then(response => {
         setUsers(response.data);
@@ -64,7 +64,7 @@ function App() {
       .finally(() => {
         setIsLoading(false);
       });
-    return cancel();
+    return cancel;
   }, []);
 
   return (
